@@ -32,9 +32,10 @@ void KalmanFilter::Update(const VectorXd &z,
                           MatrixXd &R) {
   // Update Kalman filter with new measurement
   VectorXd y = z - H * x_;
-  MatrixXd S = H * P_ * H.transpose() + R;
-  MatrixXd K = P_ * H.transpose() * S.inverse();
-
+  // Pre-calculate P * H_transpose for efficiency
+  MatrixXd PHt = P_ * H.transpose();
+  MatrixXd S = H * PHt + R;
+  MatrixXd K = PHt * S.inverse();
   x_ = x_ + K * y;
   MatrixXd I = MatrixXd::Identity(x_.size(), x_.size());
   P_ = (I - K * H) * P_;
@@ -52,8 +53,10 @@ void KalmanFilter::Update(const VectorXd &z,
   } else if (y[1] > M_PI) {
     y[1] -= M_PI * 2;
   }
-  MatrixXd S = Hj * P_ * Hj.transpose() + R;
-  MatrixXd K = P_ * Hj.transpose() * S.inverse();
+  // Pre-calculate P * Hj_transpose for efficiency
+  MatrixXd PHjt = P_ * Hj.transpose();
+  MatrixXd S = Hj * PHjt + R;
+  MatrixXd K = PHjt * S.inverse();
 
   x_ = x_ + K * y;
   MatrixXd I = MatrixXd::Identity(x_.size(), x_.size());
